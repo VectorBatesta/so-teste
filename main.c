@@ -13,22 +13,27 @@
 
 #define MAX_VALORES 20
 
+Mutex mut;
+
 int valpointer;
 int valores[MAX_VALORES] = {7,2,9,23,1, 4,7,3,0,2, 4,9,2,5,7, 9,7,1,2,6};
 
-int fifocounter;
-int fifo[5];
+int vetorcounter;
+int vetor_utilizacao[5];
 
 pthread_t p;
 pthread_t c1, c2, c3;
 
 void *consumer(){
     while(1){
-        while(fifocounter < 3);
+        while(vetorcounter < 3);
         
+        mut.lock();
 
+        printf("thread %i comeu %i", vetorcounter, vetor_utilizacao[vetorcounter]);
+        vetorcounter--;
 
-
+        mut.unlock();
 
         if (valpointer == 19){
             break;
@@ -38,15 +43,15 @@ void *consumer(){
 
 void *producer(){
     while(1){
-        while(fifocounter <= 3){
-            fifo[fifocounter] = valores[valpointer];
-            printf("stored %i... ", fifo[fifocounter]);
+        while(vetorcounter <= 3){
+            vetor_utilizacao[vetorcounter] = valores[valpointer];
+            printf("stored %i... ", vetor_utilizacao[vetorcounter]);
 
             valpointer++;
-            fifocounter++;
+            vetorcounter++;
         }
 
-        while(fifocounter > 0);
+        while(vetorcounter > 0);
 
 
 
@@ -57,7 +62,7 @@ void *producer(){
 }
 
 int main(){
-    fifocounter, valpointer = 0;
+    vetorcounter, valpointer = 0;
 
     pthread_create(&p, NULL, producer, NULL);
     pthread_create(&c1, NULL, consumer, NULL);
